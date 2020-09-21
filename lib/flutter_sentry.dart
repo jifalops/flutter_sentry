@@ -164,13 +164,15 @@ class FlutterSentry {
       // @Deprecated annotation.
       // ignore: deprecated_member_use
       onError: (Object exception, StackTrace stackTrace) {
-        if (handleError == null || !handleError(exception, stackTrace)) {
-          debugPrint('Uncaught error in zone: $exception\n$stackTrace');
-          instance.captureException(
-            exception: exception,
-            stackTrace: stackTrace,
-          );
+        if (handleError?.call(exception, stackTrace) ?? false) {
+          throw exception;
         }
+        debugPrint('Uncaught error in zone: $exception\n$stackTrace');
+        instance.captureException(
+          exception: exception,
+          stackTrace: stackTrace,
+        );
+        
       },
     );
   }
