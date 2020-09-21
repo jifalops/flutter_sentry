@@ -69,10 +69,13 @@ class FlutterSentry {
   ///
   /// flutter_driver users: keep `enableFlutterDriverExtension()` call outside
   /// of the `wrap()`.
+  /// 
+  /// Return true from [handleError] if the error was handled.
   static T wrap<T>(
     T Function() f, {
     @required String dsn,
     bool enable = true,
+    bool Function(Object error, StackTrace stacktrace) handleError,
   }) {
     var printing = false;
     return runZoned<T>(
@@ -161,11 +164,13 @@ class FlutterSentry {
       // @Deprecated annotation.
       // ignore: deprecated_member_use
       onError: (Object exception, StackTrace stackTrace) {
-        debugPrint('Uncaught error in zone: $exception\n$stackTrace');
-        instance.captureException(
-          exception: exception,
-          stackTrace: stackTrace,
-        );
+        if (handleError == null || !handleError(exception, stackTrace)) {
+          debugPrint('Uncaught error in zone: $exception\n$stackTrace');
+          instance.captureException(
+            exception: exception,
+            stackTrace: stackTrace,
+          );
+        }
       },
     );
   }
